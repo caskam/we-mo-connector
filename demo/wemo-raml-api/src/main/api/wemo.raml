@@ -1,0 +1,174 @@
+#%RAML 0.8
+title: Belkin WeMo Insight Switch API
+version: 1.0
+baseUri: http://localhost:8081
+documentation:
+ - title: Belkin WeMo Insight Switch
+   content: !include wemo.md
+ - title: REST API for the WeMo
+   content: !include operations.md
+ - title: Connecting it to the World
+   content: !include integration.md  
+/controller:
+  displayName: Belkin WeMo Insight Switch (Control Switch Functions)
+  get:
+    description: Discover a list of all Belkin WeMo switches on the local network, along with status of each switch
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                [
+                  {
+                     "device": "WeMo Insight 2"
+                     "status": "Switch is ON"
+                  }
+                  {
+                     "device": "Living Room Fan"
+                     "status": "Switch is ON"
+                  }
+                  {
+                     "device": "Main Light"
+                     "status": "Switch is ON"
+                  }
+                ]
+
+  /ON:
+    get:
+      description: Is the Switch ON?
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                   "status": "Switch is ON"
+                }
+                  
+    put:
+      description: Turn the WeMo Switch ON
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                  {
+                     "status": "Switch is ON"
+                  }
+  /OFF:
+    get:
+      description: Is the Switch OFF?
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                   "status": "Switch is OFF"
+                }
+    put:
+      description: Turn the WeMo Switch OFF
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                  {
+                     "status": "Switch is OFF"
+                  }
+  /flash:
+    post:
+      description: Turn the Switch ON and OFF as many times as desired with configurable interval between the ON and OFF. This feature is useful when a light bulb needs to be blinked on and off continuously 
+      body:
+        application/json:
+                example: |
+                  {
+                      "switch": "WeMo Insight",
+                      "count": "1",
+                      "interval": "2000"
+                  }               
+/sensor: 
+  displayName: Belkin WeMo Insight Switch (Sense Switch Usage)
+  get:
+    description: Discover a list of all Belkin WeMo switches on the local network, along with status of each switch
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                [
+                  {
+                     "device": "WeMo Insight 2"
+                     "status": "Switch is ON"
+                  }
+                  {
+                     "device": "Living Room Fan"
+                     "status": "Switch is ON"
+                  }
+                  {
+                     "device": "Main Light"
+                     "status": "Switch is ON"
+                  }
+                ]
+  /power-usage:
+    get:
+      description: Get the power usage of the Switch in Milliwatts
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                   "power": "500 mW"
+                }
+  /uptime:
+    get:
+      description: Get uptime statistics from the Switch
+      queryParameters:
+        switch:
+          description: Name of the WeMo Switch
+          type: string
+          required: false
+          example: "WeMo Insight"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                   "switch": "WeMo Insight"
+                   "lastOnFor": "200 seconds"
+                   "onTodayFor": "400 seconds"
+                   "stateTransitionTimestamp": "1423386445"
+                }
+  

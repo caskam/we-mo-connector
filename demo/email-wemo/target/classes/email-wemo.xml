@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:imaps="http://www.mulesoft.org/schema/mule/imaps"
+	xmlns:we-mo="http://www.mulesoft.org/schema/mule/we-mo" xmlns:imap="http://www.mulesoft.org/schema/mule/imap" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/imaps http://www.mulesoft.org/schema/mule/imaps/current/mule-imaps.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/current/mule-imap.xsd
+http://www.mulesoft.org/schema/mule/we-mo http://www.mulesoft.org/schema/mule/we-mo/current/mule-we-mo.xsd">
+    <we-mo:config name="WeMo__WeMo_Connector" username="test" password="test" doc:name="WeMo: WeMo_Connector"/>
+    <imaps:connector name="Gmail"  validateConnections="true" checkFrequency="500" doc:name="IMAP">
+		 <imaps:tls-client path="*" storePassword="*"/>
+		 <imaps:tls-trust-store path="*" storePassword="*"/>
+	</imaps:connector>
+    <flow name="email-wemoFlow">
+        <imaps:inbound-endpoint host="imap.googlemail.com" port="993" connector-ref="Gmail" responseTimeout="10000" doc:name="GMail" password="Mule1234" user="mulewemo%40gmail.com"/>
+        <logger message="EMail received with subject: #[message.inboundProperties.'subject']" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Email Subject">
+            <when expression="#[message.inboundProperties.'subject'.toLowerCase().contains('off')]">
+                <we-mo:turn-switch-off config-ref="WeMo__WeMo_Connector" type="BedLamp" doc:name="WeMo Off"/>
+            </when>
+            <otherwise>
+                <we-mo:turn-switch-on config-ref="WeMo__WeMo_Connector" type="BedLamp" doc:name="WeMo On"/>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

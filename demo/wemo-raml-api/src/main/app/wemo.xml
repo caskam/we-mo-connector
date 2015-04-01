@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:we-mo="http://www.mulesoft.org/schema/mule/we-mo" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/we-mo http://www.mulesoft.org/schema/mule/we-mo/current/mule-we-mo.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd" version="EE-3.5.1">
+    <apikit:config name="wemo-config" raml="wemo.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <we-mo:config name="WeMo__WeMo_Connector" username="test" password="test" doc:name="WeMo: WeMo_Connector"/>
+    <apikit:mapping-exception-strategy name="wemo-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <flow name="wemo-main">
+        <http:inbound-endpoint address="http://localhost:8081/api" doc:name="HTTP"/>
+        <apikit:router config-ref="wemo-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="wemo-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="put:/controller/OFF:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:turn-switch-off config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+        <set-payload value="{
+   &quot;status&quot;: &quot;Switch is OFF&quot;
+}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="put:/controller/ON:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:turn-switch-on config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+
+        <set-payload value="{
+   &quot;status&quot;: &quot;Switch is ON&quot;
+}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/controller:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-discovered-switches config-ref="WeMo__WeMo_Connector" doc:name="WeMo"/>
+    </flow>
+    <flow name="get:/sensor:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-discovered-switches config-ref="WeMo__WeMo_Connector" doc:name="WeMo"/>
+    </flow>
+    <flow name="get:/controller/OFF:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-current-state config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+
+        <set-payload value="{&#xA;   &quot;status&quot;: &quot;Switch is OFF&quot;&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/controller/ON:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-current-state config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+
+        <set-payload value="{&#xA;   &quot;status&quot;: &quot;Switch is ON&quot;&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/sensor/power-usage:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-current-milli-watts config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+    </flow>
+    <flow name="get:/sensor/uptime:wemo-config">
+        <logger message="Payload is : #[message.inboundProperties.'http.query.params'.get('switch')]" level="INFO" doc:name="Logger"/>
+        <we-mo:get-last-on-for-seconds config-ref="WeMo__WeMo_Connector" type="#[message.inboundProperties.'http.query.params'.get('switch')]" doc:name="WeMo"/>
+    </flow>
+    <flow name="post:/controller/flash:wemo-config">
+        <json:json-to-object-transformer doc:name="JSON to Object" returnClass="java.util.HashMap"/>
+        <logger message="Payload is : #[payload]" level="INFO" doc:name="Logger"/>
+        <we-mo:flash-switch config-ref="WeMo__WeMo_Connector" type="#[payload.switch]" flashCount="#[payload.count]" sleepTime="#[payload.interval]" doc:name="WeMo"/>
+    </flow>
+</mule>
